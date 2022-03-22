@@ -22,12 +22,10 @@ public abstract class FractalGenerator {
      * @param coord the coordinate to compute the double-precision value for.
      *        The coordinate should fall in the range [0, size].
      */
-    public static double getCoord(double rangeMin, double rangeMax,
-                                  int size, int coord) {
+    public static double getCoord(double rangeMin, double rangeMax, int size, int coord) {
 
         assert size > 0;
         assert coord >= 0 && coord < size;
-
         double range = rangeMax - rangeMin;
         return rangeMin + (range * (double) coord / (double) size);
     }
@@ -44,8 +42,7 @@ public abstract class FractalGenerator {
      * Updates the current range to be centered at the specified coordinates,
      * and to be zoomed in or out by the specified scaling factor.
      */
-    public void recenterAndZoomRange(Rectangle2D.Double range,
-                                     double centerX, double centerY, double scale) {
+    public void recenterAndZoomRange(Rectangle2D.Double range, double centerX, double centerY, double scale) {
 
         double newWidth = range.width * scale;
         double newHeight = range.height * scale;

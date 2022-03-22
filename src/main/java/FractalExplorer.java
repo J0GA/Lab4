@@ -1,5 +1,6 @@
-import javax.swing.JFrame;
-import javax.swing.JButton;
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.geom.Rectangle2D;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -7,12 +8,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 public class FractalExplorer {
     private int dispSize;
     private JImageDisplay img;
     private FractalGenerator fr_gen;
     private Rectangle2D.Double rect;
+    JComboBox<FractalGenerator> fractalCBox;
 
     public FractalExplorer(int dispSize){
         this.dispSize = dispSize;
@@ -24,16 +27,33 @@ public class FractalExplorer {
     public void createAndShowGUI(){
         JFrame frame=new JFrame();
         img=new JImageDisplay(dispSize, dispSize);
-        JButton button=new JButton();
+        JButton r_button=new JButton();
+        r_button.setActionCommand("Reset");
+        JButton s_button=new JButton();
+        s_button.setActionCommand("Save");
+        JLabel label = new JLabel("Fractal: ");
+        fractalCBox	= new JComboBox<FractalGenerator>();
+        JPanel cbPanel = new JPanel();
+        cbPanel.add(label);
+        cbPanel.add(fractalCBox);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(s_button);
+        buttonPanel.add(r_button);
+        fractalCBox.addItem(new Mandelbrot());
+        fractalCBox.addItem(new BurningShip());
+        fractalCBox.addItem(new Tricorn());
 
         ActionHandler aHandler = new ActionHandler();
         MouseHandler mHandler = new MouseHandler();
-        button.addActionListener(aHandler);
+        r_button.addActionListener(aHandler);
+        s_button.addActionListener(aHandler);
         img.addMouseListener(mHandler);
+        fractalCBox.addActionListener(aHandler);
 
         frame.setLayout(new BorderLayout());
         frame.add(img, BorderLayout.CENTER);
-        frame.add(img, BorderLayout.SOUTH);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+        frame.add(cbPanel, BorderLayout.NORTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         frame.pack();
@@ -59,10 +79,38 @@ public class FractalExplorer {
         img.repaint();
     }
 
+
+
     public class ActionHandler implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            fr_gen.getInitialRange(rect);
-            drawFractal();
+            if (e.getActionCommand() == "Reset") {
+                fr_gen.getInitialRange(rect);
+                drawFractal();
+            }
+            else if (e.getActionCommand() == "Save") {
+                JFileChooser fileChooser = new JFileChooser();
+                FileFilter filter = new FileNameExtensionFilter("PNG Images", "png");
+                fileChooser.setFileFilter(filter);
+                fileChooser.setAcceptAllFileFilterUsed(false);
+                int res = fileChooser.showSaveDialog(img);
+
+                if (res == JFileChooser.APPROVE_OPTION) {
+                    try {
+                        javax.imageio.ImageIO.write(img.getBufferedImage(),
+                                "png", fileChooser.getSelectedFile());
+                    } catch (NullPointerException | IOException e1) {
+                        javax.swing.JOptionPane.showMessageDialog(img, e1.getMessage(), "Cannot Save Image", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                else {
+                    return;
+                }
+            }
+            else if (e.getSource() == (Object) fractalCBox) {
+                fr_gen = (FractalGenerator) fractalCBox.getSelectedItem();
+                fr_gen.getInitialRange(rect);
+                drawFractal();
+            }
         }
     }
 
