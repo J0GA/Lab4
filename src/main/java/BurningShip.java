@@ -32,7 +32,7 @@ public class BurningShip extends FractalGenerator {
         return -1;
     }
 
-    public String toString() {
+    public String toString() { //Что будет показывать CheckBox
         return "Burning Ship";
     }
 }

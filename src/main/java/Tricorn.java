@@ -35,11 +35,7 @@ public class Tricorn extends FractalGenerator
         return iter;
     }
 
-    /**
-     * An implementation of toString() on this fracal implementation.  Returns
-     * the name of the fractal: "Tricorn".
-     */
-    public String toString() {
+    public String toString() { //Что будет показывать CheckBox
         return "Tricorn";
     }
 
