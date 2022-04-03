@@ -16,6 +16,9 @@ public class FractalExplorer {
     private FractalGenerator fr_gen;
     private Rectangle2D.Double rect;
     JComboBox<FractalGenerator> fractalCBox;
+    int rowsRem;
+    JButton s_button;
+    JButton r_button;
 
     public FractalExplorer(int dispSize){
         this.dispSize = dispSize;
@@ -27,9 +30,9 @@ public class FractalExplorer {
     public void createAndShowGUI(){
         JFrame frame=new JFrame();
         img=new JImageDisplay(dispSize, dispSize);
-        JButton r_button=new JButton();
+        r_button=new JButton();
         r_button.setActionCommand("Reset");
-        JButton s_button=new JButton();
+        s_button=new JButton();
         s_button.setActionCommand("Save");
         JLabel label = new JLabel("Fractal: ");
         fractalCBox	= new JComboBox<FractalGenerator>();
@@ -62,21 +65,19 @@ public class FractalExplorer {
     }
 
     private void drawFractal(){
-        for(int i=0;i<dispSize;i++)
-            for(int j=0;j<dispSize;j++) {
-                double xCoord = FractalGenerator.getCoord(rect.x, rect.x + rect.width, dispSize, i);
-                double yCoord = FractalGenerator.getCoord(rect.y, rect.y + rect.height,dispSize, j);
-                double numIt = fr_gen.numIterations(xCoord, yCoord);
+        enableUI(false);
 
-                if(numIt == -1)
-                    img.drawPixel(i, j, 0);
-                else{
-                    float hue = 0.7f + (float) numIt / 200f;
-                    int rgbColor = Color.HSBtoRGB(hue, 1f, 1f);
-                    img.drawPixel(i, j, rgbColor);
-                }
-            }
-        img.repaint();
+        rowsRem = dispSize;
+        for (int i = 0; i < dispSize; i++) {
+            FractalWorker rowDrawer = new FractalWorker(i);
+            rowDrawer.execute();
+        }
+    }
+
+    public void enableUI(boolean val) {
+        s_button.setEnabled(val);
+        r_button.setEnabled(val);
+        fractalCBox.setEnabled(val);
     }
 
 
@@ -129,4 +130,45 @@ public class FractalExplorer {
         fracExp.createAndShowGUI();
         fracExp.drawFractal();
     }
+
+    private class FractalWorker extends SwingWorker<Object, Object>{
+        int y;
+        int[] rgbVals;
+
+        public FractalWorker(int yCoord) {
+            y = yCoord;
+        }
+
+        public Object doInBackground(){
+            rgbVals = new int[dispSize];
+            double yCoord = FractalGenerator.getCoord(rect.y, rect.y + rect.height,dispSize, this.y);
+            for(int i=0;i<dispSize;i++) {
+                    double xCoord = FractalGenerator.getCoord(rect.x, rect.x + rect.width, dispSize, i);
+                    double numIt = fr_gen.numIterations(xCoord, yCoord);
+
+                    if(numIt == -1)
+                        rgbVals[i] = 0;
+                    else{
+                        float hue = 0.7f + (float) numIt / 200f;
+                        int rgbColor = Color.HSBtoRGB(hue, 1f, 1f);
+                        rgbVals[i] = rgbColor;
+                    }
+                }
+            return null;
+        }
+
+        public void done() {
+            for (int i = 0; i < dispSize; i++) {
+                img.drawPixel(i, y, rgbVals[i]);
+            }
+            img.repaint(0, 0, y, dispSize, 1);
+
+            rowsRem -= 1;
+            if (rowsRem == 0) {
+                enableUI(true);
+            }
+        }
+    }
 }
+
+
